@@ -19,4 +19,7 @@ module.exports = class remoteCommands {
 			});
 		}
 	}
+	scriptOutput(data){
+        // we don't return anything yet
+    }
 }
