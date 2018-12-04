@@ -21,35 +21,33 @@ class ResearchSync {
 				await this.addResearch(data);
 				console.log("research_added: "+data.name);
 			});
-			this.socket.on("research_removed", async data => {
-				this.lastSeen = Date.now();
-				await this.removeResearch(data);
-				console.log("research_removed: "+data.name);
-			});
+			// this.socket.on("research_removed", async data => {
+			// 	this.lastSeen = Date.now();
+			// 	await this.removeResearch(data);
+			// 	console.log("research_removed: "+data.name);
+			// });
 		})();
 	}
-	async addResearch({level, name, acquired}){
+	async addResearch({name, level}){
 		let research = await this.master.getResearch();
-		if(!research[this.instanceID]) research[this.instanceID] = {};
-		if(!research[this.instanceID][name]) research[this.instanceID][name] = {name, level:0, acquired};
-		research[this.instanceID][name].name = name;
-		research[this.instanceID][name].level = level;
-		research[this.instanceID][name].acquired = level;
-
+		if(!research) research = {};
+		if(!research[name]) research[name] = {level:0, acquired};
+		research[name].level = level;
+		research[name].acquired = Date.now();
 		await this.master.saveResearch();
 		return true;
 	}
-	async removeResearch({name}){
-		let research = await this.master.getResearch();
-		if(!research[this.instanceID][name]){
-			return true;
-		} else {
-			research[this.instanceID][name].level = 0;
-			research[this.instanceID][name].acquired = Date.now();
-			await this.master.saveResearch();
-			return true;
-		}
-	}
+	// async removeResearch({name}){
+	// 	let research = await this.master.getResearch();
+	// 	if(!research[name]){
+	// 		return true;
+	// 	} else {
+	// 		research[name].level = 0;
+	// 		research[name].acquired = Date.now();
+	// 		await this.master.saveResearch();
+	// 		return true;
+	// 	}
+	// }
 }
 
 class masterPlugin {
@@ -61,30 +59,37 @@ class masterPlugin {
 		this.express = express;
 
 		this.clients = {};
+		this.researchDatabase = {};
+
+		this.getTrainstops();
+
 		this.io.on("connection", socket => {
 			for(let id in this.clients){
 				if(Date.now() - this.clients[id].lastSeen > 60000){
 					delete this.clients[id];
 				}
 			}
-			socket.on("registerResearch", data => {
+
+			socket.on("registerResearchSync", data => {
 				console.log("Registered research sync "+data.instanceID);
 				this.clients[data.instanceID] = new ResearchSync({
 					master:this,
 					instanceID: data.instanceID,
 					socket,
 				});
+				socket.emit("researchDatabase", this.researchDatabase);
 			});
+
 		});
 
 		this.express.get("/api/research/getResearch", async (req,res) => {
 			res.send(await this.getResearch());
 		});
 	}
+
 	getResearch(){
 		return new Promise((resolve) => {
 			if(this.researchDatabase){
-				console.log(this.researchDatabase);
 				resolve(this.researchDatabase);
 			} else {
 				fs.readFile("database/researchDatabase.json", (err, data) => {
@@ -99,6 +104,7 @@ class masterPlugin {
 			}
 		});
 	}
+
 	saveResearch(){
 		return new Promise((resolve, reject) => {
 			if(this.researchDatabase){
