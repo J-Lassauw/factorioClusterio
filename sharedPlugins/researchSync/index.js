@@ -34,7 +34,6 @@ module.exports = class remoteCommands {
                 let mainCode = await this.getSafeLua("sharedPlugins/researchSync/lua/researchSync.lua");
                 if(mainCode) returnValue = await messageInterface("/silent-command remote.call('hotpatch', 'update', '"+pluginConfig.name+"', '"+pluginConfig.version+"', '"+mainCode+"', \{json = '"+jsoncode+"'\})");
                 if(returnValue) console.log(returnValue);
-                if(returnValue) console.log(returnValue);
             }
         })().catch(e => console.log(e));
 
