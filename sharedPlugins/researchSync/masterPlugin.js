@@ -19,7 +19,6 @@ class ResearchSync {
 			this.socket.on("research_added", async data => {
 				this.lastSeen = Date.now();
 				await this.addResearch(data);
-				console.log("research_added: "+data.name);
 			});
 			// this.socket.on("research_removed", async data => {
 			// 	this.lastSeen = Date.now();
@@ -61,7 +60,7 @@ class masterPlugin {
 		this.clients = {};
 		this.researchDatabase = {};
 
-		this.getTrainstops();
+		this.getResearch();
 
 		this.io.on("connection", socket => {
 			for(let id in this.clients){
@@ -71,7 +70,6 @@ class masterPlugin {
 			}
 
 			socket.on("registerResearchSync", data => {
-				console.log("Registered research sync "+data.instanceID);
 				this.clients[data.instanceID] = new ResearchSync({
 					master:this,
 					instanceID: data.instanceID,
@@ -95,6 +93,7 @@ class masterPlugin {
 				fs.readFile("database/researchDatabase.json", (err, data) => {
 					if(err && typeof(data) !== "number"){
 						this.researchDatabase = {};
+                        this.saveResearch();
 						resolve(this.researchDatabase);
 					} else {
 						this.researchDatabase = JSON.parse(data.toString());
@@ -108,7 +107,6 @@ class masterPlugin {
 	saveResearch(){
 		return new Promise((resolve, reject) => {
 			if(this.researchDatabase){
-				console.log(this.researchDatabase);
 				fs.writeFile("database/researchDatabase.json", JSON.stringify(this.researchDatabase, null, 4), (err) => {
 					if(err){
 						reject(err);

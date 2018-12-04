@@ -7,6 +7,6 @@ module.exports = {
 	version: "2.0.0",
 	binary: "nodePackage",
 	description: "Clusterio plugin for synchronising research between servers",
-	scriptOutputFileSubscription: "trainTeleports.txt",
+	scriptOutputFileSubscription: "researchSync.txt",
 	masterPlugin: "masterPlugin.js",
 };

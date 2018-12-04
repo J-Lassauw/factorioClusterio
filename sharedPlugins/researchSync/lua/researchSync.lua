@@ -13,10 +13,6 @@ local function initialize()
     end)
 end
 
-script.on_load(initialize())
-script.on_init(initialize())
-
-
 remote.remove_interface("researchSync")
 remote.add_interface("researchSync", {
     setResearch = function(jsonString)
@@ -43,3 +39,6 @@ remote.add_interface("researchSync", {
         end
     end
 })
+
+script.on_load(initialize())
+script.on_init(initialize())
